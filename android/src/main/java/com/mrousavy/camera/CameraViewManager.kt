@@ -1,14 +1,21 @@
 package com.mrousavy.camera
 
+import android.view.View
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.common.MapBuilder
 import com.facebook.react.uimanager.ViewGroupManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
+import com.facebook.react.views.view.ReactViewGroup
 
 @Suppress("unused")
 class CameraViewManager(reactContext: ReactApplicationContext) : ViewGroupManager<CameraView>() {
+
+  private val reactViewGroup = ReactViewGroup(reactContext)
+  override fun addView(parent: CameraView?, child: View?, index: Int) {
+    reactViewGroup.addView(child, index)
+  }
 
   public override fun createViewInstance(context: ThemedReactContext): CameraView {
     val cameraViewModule = context.getNativeModule(CameraViewModule::class.java)!!

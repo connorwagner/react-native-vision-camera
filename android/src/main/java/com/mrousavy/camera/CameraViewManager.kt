@@ -1,24 +1,59 @@
 package com.mrousavy.camera
 
+import android.view.View
+import android.widget.RelativeLayout
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.common.MapBuilder
 import com.facebook.react.uimanager.ViewGroupManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
+import com.facebook.react.views.view.ReactViewGroup
 
 @Suppress("unused")
-class CameraViewManager(reactContext: ReactApplicationContext) : ViewGroupManager<CameraView>() {
+class CameraViewManager(reactContext: ReactApplicationContext) : ViewGroupManager<RelativeLayout>() {
 
-  public override fun createViewInstance(context: ThemedReactContext): CameraView {
-    val cameraViewModule = context.getNativeModule(CameraViewModule::class.java)!!
-    return CameraView(context, cameraViewModule.frameProcessorThread)
+  private var viewGroup: RelativeLayout? = null
+  private var cameraView: CameraView? = null
+  private var reactViewGroup: ReactViewGroup? = null
+
+  override fun addView(parent: RelativeLayout?, child: View?, index: Int) {
+    reactViewGroup?.addView(child, index)
   }
 
-  override fun onAfterUpdateTransaction(view: CameraView) {
+  override fun addViews(parent: RelativeLayout?, views: MutableList<View>?) {
+    views?.forEach { addView(parent, it, 0) }
+  }
+
+  private var isSetup = false
+  public override fun createViewInstance(context: ThemedReactContext): RelativeLayout {
+    if (!isSetup) {
+      isSetup = true
+
+      val layoutParams = RelativeLayout.LayoutParams(
+        RelativeLayout.LayoutParams.MATCH_PARENT,
+        RelativeLayout.LayoutParams.MATCH_PARENT
+      )
+
+      cameraView = CameraView(context, context.getNativeModule(CameraViewModule::class.java)!!.frameProcessorThread)
+      cameraView!!.layoutParams = layoutParams
+
+      reactViewGroup = ReactViewGroup(context)
+      reactViewGroup!!.layoutParams = layoutParams
+
+      viewGroup = RelativeLayout(context)
+      viewGroup!!.addView(cameraView)
+      viewGroup!!.addView(reactViewGroup)
+    }
+
+    return viewGroup!!
+  }
+
+  override fun onAfterUpdateTransaction(view: RelativeLayout) {
     super.onAfterUpdateTransaction(view)
+
     val changedProps = cameraViewTransactions[view] ?: ArrayList()
-    view.update(changedProps)
+    cameraView?.update(changedProps)
     cameraViewTransactions.remove(view)
   }
 
@@ -36,148 +71,148 @@ class CameraViewManager(reactContext: ReactApplicationContext) : ViewGroupManage
   }
 
   @ReactProp(name = "cameraId")
-  fun setCameraId(view: CameraView, cameraId: String) {
-    if (view.cameraId != cameraId)
+  fun setCameraId(view: RelativeLayout, cameraId: String) {
+    if (cameraView?.cameraId != cameraId)
       addChangedPropToTransaction(view, "cameraId")
-    view.cameraId = cameraId
+    cameraView?.cameraId = cameraId
   }
 
   @ReactProp(name = "photo")
-  fun setPhoto(view: CameraView, photo: Boolean?) {
-    if (view.photo != photo)
+  fun setPhoto(view: RelativeLayout, photo: Boolean?) {
+    if (cameraView?.photo != photo)
       addChangedPropToTransaction(view, "photo")
-    view.photo = photo
+    cameraView?.photo = photo
   }
 
   @ReactProp(name = "video")
-  fun setVideo(view: CameraView, video: Boolean?) {
-    if (view.video != video)
+  fun setVideo(view: RelativeLayout, video: Boolean?) {
+    if (cameraView?.video != video)
       addChangedPropToTransaction(view, "video")
-    view.video = video
+    cameraView?.video = video
   }
 
   @ReactProp(name = "audio")
-  fun setAudio(view: CameraView, audio: Boolean?) {
-    if (view.audio != audio)
+  fun setAudio(view: RelativeLayout, audio: Boolean?) {
+    if (cameraView?.audio != audio)
       addChangedPropToTransaction(view, "audio")
-    view.audio = audio
+    cameraView?.audio = audio
   }
 
   @ReactProp(name = "enableFrameProcessor")
-  fun setEnableFrameProcessor(view: CameraView, enableFrameProcessor: Boolean) {
-    if (view.enableFrameProcessor != enableFrameProcessor)
+  fun setEnableFrameProcessor(view: RelativeLayout, enableFrameProcessor: Boolean) {
+    if (cameraView?.enableFrameProcessor != enableFrameProcessor)
       addChangedPropToTransaction(view, "enableFrameProcessor")
-    view.enableFrameProcessor = enableFrameProcessor
+    cameraView?.enableFrameProcessor = enableFrameProcessor
   }
 
   @ReactProp(name = "enableDepthData")
-  fun setEnableDepthData(view: CameraView, enableDepthData: Boolean) {
-    if (view.enableDepthData != enableDepthData)
+  fun setEnableDepthData(view: RelativeLayout, enableDepthData: Boolean) {
+    if (cameraView?.enableDepthData != enableDepthData)
       addChangedPropToTransaction(view, "enableDepthData")
-    view.enableDepthData = enableDepthData
+    cameraView?.enableDepthData = enableDepthData
   }
 
   @ReactProp(name = "enableHighQualityPhotos")
-  fun setEnableHighQualityPhotos(view: CameraView, enableHighQualityPhotos: Boolean?) {
-    if (view.enableHighQualityPhotos != enableHighQualityPhotos)
+  fun setEnableHighQualityPhotos(view: RelativeLayout, enableHighQualityPhotos: Boolean?) {
+    if (cameraView?.enableHighQualityPhotos != enableHighQualityPhotos)
       addChangedPropToTransaction(view, "enableHighQualityPhotos")
-    view.enableHighQualityPhotos = enableHighQualityPhotos
+    cameraView?.enableHighQualityPhotos = enableHighQualityPhotos
   }
 
   @ReactProp(name = "enablePortraitEffectsMatteDelivery")
-  fun setEnablePortraitEffectsMatteDelivery(view: CameraView, enablePortraitEffectsMatteDelivery: Boolean) {
-    if (view.enablePortraitEffectsMatteDelivery != enablePortraitEffectsMatteDelivery)
+  fun setEnablePortraitEffectsMatteDelivery(view: RelativeLayout, enablePortraitEffectsMatteDelivery: Boolean) {
+    if (cameraView?.enablePortraitEffectsMatteDelivery != enablePortraitEffectsMatteDelivery)
       addChangedPropToTransaction(view, "enablePortraitEffectsMatteDelivery")
-    view.enablePortraitEffectsMatteDelivery = enablePortraitEffectsMatteDelivery
+    cameraView?.enablePortraitEffectsMatteDelivery = enablePortraitEffectsMatteDelivery
   }
 
   @ReactProp(name = "format")
-  fun setFormat(view: CameraView, format: ReadableMap?) {
-    if (view.format != format)
+  fun setFormat(view: RelativeLayout, format: ReadableMap?) {
+    if (cameraView?.format != format)
       addChangedPropToTransaction(view, "format")
-    view.format = format
+    cameraView?.format = format
   }
 
   // TODO: Change when TurboModules release.
   // We're treating -1 as "null" here, because when I make the fps parameter
   // of type "Int?" the react bridge throws an error.
   @ReactProp(name = "fps", defaultInt = -1)
-  fun setFps(view: CameraView, fps: Int) {
-    if (view.fps != fps)
+  fun setFps(view: RelativeLayout, fps: Int) {
+    if (cameraView?.fps != fps)
       addChangedPropToTransaction(view, "fps")
-    view.fps = if (fps > 0) fps else null
+    cameraView?.fps = if (fps > 0) fps else null
   }
 
   @ReactProp(name = "frameProcessorFps", defaultDouble = 1.0)
-  fun setFrameProcessorFps(view: CameraView, frameProcessorFps: Double) {
-    if (view.frameProcessorFps != frameProcessorFps)
+  fun setFrameProcessorFps(view: RelativeLayout, frameProcessorFps: Double) {
+    if (cameraView?.frameProcessorFps != frameProcessorFps)
       addChangedPropToTransaction(view, "frameProcessorFps")
-    view.frameProcessorFps = frameProcessorFps
+    cameraView?.frameProcessorFps = frameProcessorFps
   }
 
   @ReactProp(name = "hdr")
-  fun setHdr(view: CameraView, hdr: Boolean?) {
-    if (view.hdr != hdr)
+  fun setHdr(view: RelativeLayout, hdr: Boolean?) {
+    if (cameraView?.hdr != hdr)
       addChangedPropToTransaction(view, "hdr")
-    view.hdr = hdr
+    cameraView?.hdr = hdr
   }
 
   @ReactProp(name = "lowLightBoost")
-  fun setLowLightBoost(view: CameraView, lowLightBoost: Boolean?) {
-    if (view.lowLightBoost != lowLightBoost)
+  fun setLowLightBoost(view: RelativeLayout, lowLightBoost: Boolean?) {
+    if (cameraView?.lowLightBoost != lowLightBoost)
       addChangedPropToTransaction(view, "lowLightBoost")
-    view.lowLightBoost = lowLightBoost
+    cameraView?.lowLightBoost = lowLightBoost
   }
 
   @ReactProp(name = "colorSpace")
-  fun setColorSpace(view: CameraView, colorSpace: String?) {
-    if (view.colorSpace != colorSpace)
+  fun setColorSpace(view: RelativeLayout, colorSpace: String?) {
+    if (cameraView?.colorSpace != colorSpace)
       addChangedPropToTransaction(view, "colorSpace")
-    view.colorSpace = colorSpace
+    cameraView?.colorSpace = colorSpace
   }
 
   @ReactProp(name = "isActive")
-  fun setIsActive(view: CameraView, isActive: Boolean) {
-    if (view.isActive != isActive)
+  fun setIsActive(view: RelativeLayout, isActive: Boolean) {
+    if (cameraView?.isActive != isActive)
       addChangedPropToTransaction(view, "isActive")
-    view.isActive = isActive
+    cameraView?.isActive = isActive
   }
 
   @ReactProp(name = "torch")
-  fun setTorch(view: CameraView, torch: String) {
-    if (view.torch != torch)
+  fun setTorch(view: RelativeLayout, torch: String) {
+    if (cameraView?.torch != torch)
       addChangedPropToTransaction(view, "torch")
-    view.torch = torch
+    cameraView?.torch = torch
   }
 
   @ReactProp(name = "zoom")
-  fun setZoom(view: CameraView, zoom: Double) {
+  fun setZoom(view: RelativeLayout, zoom: Double) {
     val zoomFloat = zoom.toFloat()
-    if (view.zoom != zoomFloat)
+    if (cameraView?.zoom != zoomFloat)
       addChangedPropToTransaction(view, "zoom")
-    view.zoom = zoomFloat
+    cameraView?.zoom = zoomFloat
   }
 
   @ReactProp(name = "enableZoomGesture")
-  fun setEnableZoomGesture(view: CameraView, enableZoomGesture: Boolean) {
-    if (view.enableZoomGesture != enableZoomGesture)
+  fun setEnableZoomGesture(view: RelativeLayout, enableZoomGesture: Boolean) {
+    if (cameraView?.enableZoomGesture != enableZoomGesture)
       addChangedPropToTransaction(view, "enableZoomGesture")
-    view.enableZoomGesture = enableZoomGesture
+    cameraView?.enableZoomGesture = enableZoomGesture
   }
 
   @ReactProp(name = "orientation")
-  fun setOrientation(view: CameraView, orientation: String) {
-    if (view.orientation != orientation)
+  fun setOrientation(view: RelativeLayout, orientation: String) {
+    if (cameraView?.orientation != orientation)
       addChangedPropToTransaction(view, "orientation")
-    view.orientation = orientation
+    cameraView?.orientation = orientation
   }
 
   companion object {
     const val TAG = "CameraView"
 
-    val cameraViewTransactions: HashMap<CameraView, ArrayList<String>> = HashMap()
+    val cameraViewTransactions: HashMap<RelativeLayout, ArrayList<String>> = HashMap()
 
-    private fun addChangedPropToTransaction(view: CameraView, changedProp: String) {
+    private fun addChangedPropToTransaction(view: RelativeLayout, changedProp: String) {
       if (cameraViewTransactions[view] == null) {
         cameraViewTransactions[view] = ArrayList()
       }

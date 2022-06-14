@@ -11,6 +11,8 @@ import android.util.Range
 import android.view.*
 import android.view.View.OnTouchListener
 import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.core.*
 import androidx.camera.core.impl.*
@@ -25,6 +27,8 @@ import com.facebook.jni.HybridData
 import com.facebook.proguard.annotations.DoNotStrip
 import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.events.RCTEventEmitter
+import com.facebook.react.util.RNLog
+import com.facebook.react.views.view.ReactViewGroup
 import com.mrousavy.camera.frameprocessor.FrameProcessorPerformanceDataCollector
 import com.mrousavy.camera.frameprocessor.FrameProcessorRuntimeManager
 import com.mrousavy.camera.utils.*
@@ -67,7 +71,7 @@ import kotlin.math.min
 
 @Suppress("KotlinJniMissingFunction") // I use fbjni, Android Studio is not smart enough to realize that.
 @SuppressLint("ClickableViewAccessibility", "ViewConstructor")
-class CameraView(context: Context, private val frameProcessorThread: ExecutorService) : FrameLayout(context), LifecycleOwner {
+class CameraView(context: Context, private val frameProcessorThread: ExecutorService) : RelativeLayout(context), LifecycleOwner {
   companion object {
     const val TAG = "CameraView"
     const val TAG_PERF = "CameraView.performance"
@@ -209,6 +213,9 @@ class CameraView(context: Context, private val frameProcessorThread: ExecutorSer
       return false
     }
 
+  private val reactViewGroup: ReactViewGroup
+
+  private var isInitDone = false
   init {
     if (FrameProcessorRuntimeManager.enableFrameProcessors) {
       mHybridData = initHybrid()
@@ -249,6 +256,52 @@ class CameraView(context: Context, private val frameProcessorThread: ExecutorSer
         reactContext.removeLifecycleEventListener(this)
       }
     })
+
+    reactViewGroup = ReactViewGroup(context)
+    reactViewGroup.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+    addView(reactViewGroup)
+
+    isInitDone = true
+  }
+
+  override fun addView(child: View?) {
+    if (isInitDone) {
+      reactViewGroup.addView(child)
+    } else {
+      super.addView(child)
+    }
+  }
+
+  override fun addView(child: View?, params: ViewGroup.LayoutParams?) {
+    if (isInitDone) {
+      reactViewGroup.addView(child, params)
+    } else {
+      super.addView(child, params)
+    }
+  }
+
+  override fun addView(child: View?, index: Int) {
+    if (isInitDone) {
+      reactViewGroup.addView(child, index)
+    } else {
+      super.addView(child, index)
+    }
+  }
+
+  override fun addView(child: View?, width: Int, height: Int) {
+    if (isInitDone) {
+      reactViewGroup.addView(child, width, height)
+    } else {
+      super.addView(child, width, height)
+    }
+  }
+
+  override fun addView(child: View?, index: Int, params: ViewGroup.LayoutParams?) {
+    if (isInitDone) {
+      reactViewGroup.addView(child, index, params)
+    } else {
+      super.addView(child, index, params)
+    }
   }
 
   override fun onConfigurationChanged(newConfig: Configuration?) {
@@ -443,7 +496,6 @@ class CameraView(context: Context, private val frameProcessorThread: ExecutorSer
           tryEnableExtension(ExtensionMode.NIGHT)
         }
       }
-
 
       // Unbind use cases before rebinding
       videoCapture = null

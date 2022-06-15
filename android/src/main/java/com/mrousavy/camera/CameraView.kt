@@ -353,6 +353,8 @@ class CameraView(context: Context, private val frameProcessorThread: ExecutorSer
   }
 
   override fun onDetachedFromWindow() {
+    camera!!.cameraControl.enableTorch(false)
+
     super.onDetachedFromWindow()
     updateLifecycleState()
   }
